@@ -58,22 +58,25 @@ export default function Home() {
         console.error('Failed to load KPIs:', kpiRes.reason);
       }
 
-      if (trendRes.status === 'fulfilled') {
-        setTrends(trendRes.value || []);
+      if (trendRes.status === 'fulfilled' && Array.isArray(trendRes.value)) {
+        setTrends(trendRes.value);
       } else {
-        console.error('Failed to load Trends:', trendRes.reason);
+        console.error('Failed to load Trends:', trendRes.status === 'rejected' ? trendRes.reason : trendRes.value);
+        setTrends([]);
       }
 
-      if (secRes.status === 'fulfilled') {
-        setSectors(secRes.value || []);
+      if (secRes.status === 'fulfilled' && Array.isArray(secRes.value)) {
+        setSectors(secRes.value);
       } else {
-        console.error('Failed to load Sectors:', secRes.reason);
+        console.error('Failed to load Sectors:', secRes.status === 'rejected' ? secRes.reason : secRes.value);
+        setSectors([]);
       }
 
-      if (incRes.status === 'fulfilled') {
-        setRecentIncidents(incRes.value.items || []);
+      if (incRes.status === 'fulfilled' && Array.isArray(incRes.value?.items)) {
+        setRecentIncidents(incRes.value.items);
       } else {
-        console.error('Failed to load Recent Incidents:', incRes.reason);
+        console.error('Failed to load Recent Incidents:', incRes.status === 'rejected' ? incRes.reason : incRes.value);
+        setRecentIncidents([]);
       }
     } catch (err) {
       console.error('Error loading platform data:', err);

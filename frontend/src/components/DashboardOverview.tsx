@@ -51,6 +51,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     setMounted(true);
   }, []);
 
+  const safeTrends = Array.isArray(trends) ? trends : [];
+  const safeSectors = Array.isArray(sectors) ? sectors : [];
+  const safeIncidents = Array.isArray(recentIncidents) ? recentIncidents : [];
+
   return (
     <div className="space-y-6">
       {/* Scope Selector Ribbon (Material Segmented Control) */}
@@ -109,13 +113,13 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <div className="h-full w-full flex items-center justify-center text-xs text-slate-400 animate-pulse">
                   Loading incident trajectory...
                 </div>
-              ) : trends.length === 0 ? (
+              ) : safeTrends.length === 0 ? (
                 <div className="h-full w-full flex items-center justify-center text-xs text-slate-400">
                   No trajectory data available for the selected scope.
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trends.slice(-10)} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <AreaChart data={safeTrends.slice(-10)} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="dashGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
@@ -174,13 +178,13 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <div className="h-full w-full flex items-center justify-center text-xs text-slate-400 animate-pulse">
                   Loading sector breakdown...
                 </div>
-              ) : sectors.length === 0 ? (
+              ) : safeSectors.length === 0 ? (
                 <div className="h-full w-full flex items-center justify-center text-xs text-slate-400">
                   No sector distribution data available for the selected scope.
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sectors.slice(0, 6)} layout="vertical" margin={{ top: 5, right: 20, left: 35, bottom: 0 }}>
+                  <BarChart data={safeSectors.slice(0, 6)} layout="vertical" margin={{ top: 5, right: 20, left: 35, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" strokeOpacity={0.2} />
                     <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 10 }} />
                     <YAxis
@@ -202,7 +206,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                       }}
                     />
                     <Bar dataKey="count" name="Incidents" radius={[0, 6, 6, 0]}>
-                      {sectors.slice(0, 6).map((_, idx) => (
+                      {safeSectors.slice(0, 6).map((_, idx) => (
                         <Cell key={`bar-${idx}`} fill={MATERIAL_COLORS[idx % MATERIAL_COLORS.length]} />
                       ))}
                     </Bar>
@@ -247,7 +251,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-              {recentIncidents.slice(0, 6).map((inc) => (
+              {safeIncidents.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-xs text-slate-400">
+                    No recent incidents available for the selected scope.
+                  </td>
+                </tr>
+              ) : (
+                safeIncidents.slice(0, 6).map((inc) => (
                 <tr
                   key={inc.id}
                   className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
@@ -286,7 +297,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     </span>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
