@@ -51,13 +51,30 @@ def list_incidents(
     if sector and sector != "All":
         query = query.filter(CyberIncident.sector == sector)
 
-    if country and country != "All":
-        query = query.filter(
-            or_(
-                CyberIncident.country == country,
-                CyberIncident.country_code == country
+    if country and country not in ("All", "Global", "Global Landscape", ""):
+        clean_c = country.strip()
+        if clean_c in ("United Kingdom", "UK", "GB"):
+            query = query.filter(
+                or_(
+                    CyberIncident.country.ilike("%United Kingdom%"),
+                    CyberIncident.country_code.in_(["GB", "UK"])
+                )
             )
-        )
+        elif clean_c in ("United States", "USA", "US"):
+            query = query.filter(
+                or_(
+                    CyberIncident.country.ilike("%United States%"),
+                    CyberIncident.country_code == "US"
+                )
+            )
+        else:
+            query = query.filter(
+                or_(
+                    CyberIncident.country == clean_c,
+                    CyberIncident.country_code == clean_c,
+                    CyberIncident.country.ilike(f"%{clean_c}%")
+                )
+            )
 
     if attack_type and attack_type != "All":
         query = query.filter(CyberIncident.attack_type == attack_type)

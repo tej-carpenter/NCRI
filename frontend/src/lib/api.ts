@@ -11,20 +11,23 @@ import {
   IngestionRun,
 } from '../types';
 
-function getApiBase(): string {
+function getBackendUrl(): string {
   const custom =
     process.env.NEXT_PUBLIC_BACKEND_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     '';
 
   if (custom) {
-    const clean = custom.trim().replace(/\/+$/, '');
-    return clean.endsWith('/api') ? clean : `${clean}/api`;
+    return custom.trim().replace(/\/+$/, '').replace(/\/api$/, '');
   }
-  return '/api';
+  // Production fallback to live Render backend
+  return 'https://ncri.onrender.com';
 }
 
-export const API_BASE = getApiBase();
+export const BACKEND_URL = getBackendUrl();
+export const API_BASE = `${BACKEND_URL}/api`;
+export const DOCS_URL = `${BACKEND_URL}/docs`;
+export const HEALTH_URL = `${BACKEND_URL}/api/health`;
 
 async function fetchJson<T>(url: string, fallback: T, init?: RequestInit): Promise<T> {
   try {
@@ -56,7 +59,7 @@ export async function fetchHealth(): Promise<{ status: string; project?: string;
 
 const emptyKPIs: SummaryKPIs = {
   total_incidents: 0,
-  total_sources: 0,
+  total_sources: 5,
   total_vulnerabilities: 0,
   total_countries: 0,
   top_sector: null,
@@ -67,11 +70,20 @@ const emptyKPIs: SummaryKPIs = {
   records_with_known_actors_percentage: 0,
 };
 
+function cleanCountryParam(country?: string): string | undefined {
+  if (!country || country === 'All' || country === 'Global' || country === 'Global Landscape') {
+    return undefined;
+  }
+  return country.trim();
+}
+
 export async function fetchKpis(country?: string, sector?: string): Promise<SummaryKPIs> {
   const params = new URLSearchParams();
-  if (country && country !== 'All') params.append('country', country);
+  const c = cleanCountryParam(country);
+  if (c) params.append('country', c);
   if (sector && sector !== 'All') params.append('sector', sector);
-  return fetchJson(`${API_BASE}/analytics/kpis?${params.toString()}`, emptyKPIs);
+  const qs = params.toString();
+  return fetchJson(`${API_BASE}/analytics/kpis${qs ? `?${qs}` : ''}`, emptyKPIs);
 }
 
 export async function fetchTrends(
@@ -80,34 +92,42 @@ export async function fetchTrends(
   granularity: string = 'yearly'
 ): Promise<TrendPoint[]> {
   const params = new URLSearchParams();
-  if (country && country !== 'All') params.append('country', country);
+  const c = cleanCountryParam(country);
+  if (c) params.append('country', c);
   if (sector && sector !== 'All') params.append('sector', sector);
   params.append('granularity', granularity);
-  return fetchJson(`${API_BASE}/analytics/trends?${params.toString()}`, []);
+  const qs = params.toString();
+  return fetchJson(`${API_BASE}/analytics/trends${qs ? `?${qs}` : ''}`, []);
 }
 
 export async function fetchSectors(country?: string): Promise<SectorStat[]> {
   const params = new URLSearchParams();
-  if (country && country !== 'All') params.append('country', country);
-  return fetchJson(`${API_BASE}/analytics/sectors?${params.toString()}`, []);
+  const c = cleanCountryParam(country);
+  if (c) params.append('country', c);
+  const qs = params.toString();
+  return fetchJson(`${API_BASE}/analytics/sectors${qs ? `?${qs}` : ''}`, []);
 }
 
 export async function fetchAttackTypes(country?: string, sector?: string): Promise<AttackTypeStat[]> {
   const params = new URLSearchParams();
-  if (country && country !== 'All') params.append('country', country);
+  const c = cleanCountryParam(country);
+  if (c) params.append('country', c);
   if (sector && sector !== 'All') params.append('sector', sector);
-  return fetchJson(`${API_BASE}/analytics/attack-types?${params.toString()}`, []);
+  const qs = params.toString();
+  return fetchJson(`${API_BASE}/analytics/attack-types${qs ? `?${qs}` : ''}`, []);
 }
 
-export async function fetchGeography(limit: number = 20): Promise<GeoStat[]> {
+export async function fetchGeography(limit: number = 25): Promise<GeoStat[]> {
   return fetchJson(`${API_BASE}/analytics/geography?limit=${limit}`, []);
 }
 
 export async function fetchSeverity(country?: string, sector?: string): Promise<SeverityStat[]> {
   const params = new URLSearchParams();
-  if (country && country !== 'All') params.append('country', country);
+  const c = cleanCountryParam(country);
+  if (c) params.append('country', c);
   if (sector && sector !== 'All') params.append('sector', sector);
-  return fetchJson(`${API_BASE}/analytics/severity?${params.toString()}`, []);
+  const qs = params.toString();
+  return fetchJson(`${API_BASE}/analytics/severity${qs ? `?${qs}` : ''}`, []);
 }
 
 export async function fetchIncidents(params: {
@@ -129,7 +149,8 @@ export async function fetchIncidents(params: {
   q.append('size', size.toString());
   if (params.search) q.append('search', params.search);
   if (params.sector && params.sector !== 'All') q.append('sector', params.sector);
-  if (params.country && params.country !== 'All') q.append('country', params.country);
+  const c = cleanCountryParam(params.country);
+  if (c) q.append('country', c);
   if (params.attack_type && params.attack_type !== 'All') q.append('attack_type', params.attack_type);
   if (params.severity && params.severity !== 'All') q.append('severity', params.severity);
   if (params.year) q.append('year', params.year.toString());
@@ -150,8 +171,9 @@ export async function fetchRiskIndex(
   period: string = 'All-Time',
   country: string = 'All'
 ): Promise<NCRIOverviewResponse | null> {
+  const c = cleanCountryParam(country) || 'All';
   return fetchJson(
-    `${API_BASE}/risk/index?period=${encodeURIComponent(period)}&country=${encodeURIComponent(country)}`,
+    `${API_BASE}/risk/index?period=${encodeURIComponent(period)}&country=${encodeURIComponent(c)}`,
     null
   );
 }
@@ -240,9 +262,11 @@ export function getCsvExportUrl(filters: {
 }) {
   const q = new URLSearchParams();
   if (filters.sector && filters.sector !== 'All') q.append('sector', filters.sector);
-  if (filters.country && filters.country !== 'All') q.append('country', filters.country);
+  const c = cleanCountryParam(filters.country);
+  if (c) q.append('country', c);
   if (filters.attack_type && filters.attack_type !== 'All') q.append('attack_type', filters.attack_type);
   if (filters.severity && filters.severity !== 'All') q.append('severity', filters.severity);
   if (filters.year) q.append('year', filters.year.toString());
-  return `${API_BASE}/reports/export-csv?${q.toString()}`;
+  const qs = q.toString();
+  return `${API_BASE}/reports/export-csv${qs ? `?${qs}` : ''}`;
 }

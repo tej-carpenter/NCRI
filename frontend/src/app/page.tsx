@@ -8,6 +8,8 @@ import {
   fetchSectors,
   fetchIncidents,
   triggerSourceSync,
+  DOCS_URL,
+  HEALTH_URL,
 } from '../lib/api';
 import { SummaryKPIs, TrendPoint, SectorStat, CyberIncident } from '../types';
 import { Navbar } from '../components/Navbar';
@@ -86,8 +88,10 @@ export default function Home() {
   }, [countryScope]);
 
   useEffect(() => {
-    loadGlobalData();
-  }, [loadGlobalData]);
+    if (activeTab === 'overview') {
+      loadGlobalData();
+    }
+  }, [loadGlobalData, activeTab]);
 
   const handleQuickSync = async () => {
     setSyncing(true);
@@ -124,6 +128,7 @@ export default function Home() {
             onNavigateTab={setActiveTab}
             countryScope={countryScope}
             setCountryScope={setCountryScope}
+            onRefresh={loadGlobalData}
           />
         )}
 
@@ -151,18 +156,28 @@ export default function Home() {
           <div className="flex items-center space-x-4">
             <span className="font-mono text-[11px] text-slate-400 dark:text-slate-500">NCRI v1.0.0</span>
             <a
-              href="/docs"
+              href={DOCS_URL}
               target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-600 dark:text-blue-400 hover:underline transition"
             >
               API Docs (FastAPI)
             </a>
             <a
-              href="/api/health"
+              href={HEALTH_URL}
               target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-600 dark:text-blue-400 hover:underline transition"
             >
               System Health
+            </a>
+            <a
+              href="https://github.com/tej-carpenter/NCRI"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
+            >
+              GitHub
             </a>
           </div>
         </div>

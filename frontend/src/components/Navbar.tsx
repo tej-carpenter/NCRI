@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 interface NavbarProps {
   activeTab: string;
@@ -100,8 +101,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Export CSV (Material Filled) */}
           <a
-            href="/api/reports/export-csv"
-            download
+            href={`${API_BASE}/reports/export-csv`}
+            download="ncri_cyber_incidents.csv"
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all"
           >
             Export CSV

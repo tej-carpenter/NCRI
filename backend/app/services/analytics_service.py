@@ -21,10 +21,31 @@ logger = logging.getLogger("ncri.services.analytics")
 
 class AnalyticsService:
     @staticmethod
+    def _apply_country_filter(query, country: Optional[str]):
+        if not country or country in ("All", "Global", "Global Landscape", ""):
+            return query
+        clean = country.strip()
+        if clean in ("United Kingdom", "UK", "GB"):
+            return query.filter(
+                (CyberIncident.country.ilike("%United Kingdom%")) |
+                (CyberIncident.country_code.in_(["GB", "UK"]))
+            )
+        elif clean in ("United States", "USA", "US"):
+            return query.filter(
+                (CyberIncident.country.ilike("%United States%")) |
+                (CyberIncident.country_code == "US")
+            )
+        else:
+            return query.filter(
+                (CyberIncident.country == clean) |
+                (CyberIncident.country_code == clean) |
+                (CyberIncident.country.ilike(f"%{clean}%"))
+            )
+
+    @staticmethod
     def get_summary_kpis(db: Session, country: Optional[str] = None, sector: Optional[str] = None) -> SummaryKPIs:
         query = db.query(CyberIncident)
-        if country and country != "All":
-            query = query.filter((CyberIncident.country == country) | (CyberIncident.country_code == country))
+        query = AnalyticsService._apply_country_filter(query, country)
         if sector and sector != "All":
             query = query.filter(CyberIncident.sector == sector)
 
@@ -95,8 +116,7 @@ class AnalyticsService:
         granularity: str = "yearly"
     ) -> List[TrendPoint]:
         query = db.query(CyberIncident)
-        if country and country != "All":
-            query = query.filter((CyberIncident.country == country) | (CyberIncident.country_code == country))
+        query = AnalyticsService._apply_country_filter(query, country)
         if sector and sector != "All":
             query = query.filter(CyberIncident.sector == sector)
 
@@ -155,8 +175,7 @@ class AnalyticsService:
     @staticmethod
     def get_sector_stats(db: Session, country: Optional[str] = None) -> List[SectorStat]:
         query = db.query(CyberIncident)
-        if country and country != "All":
-            query = query.filter((CyberIncident.country == country) | (CyberIncident.country_code == country))
+        query = AnalyticsService._apply_country_filter(query, country)
 
         total = query.count()
         if total == 0:
@@ -183,8 +202,7 @@ class AnalyticsService:
     @staticmethod
     def get_attack_type_stats(db: Session, country: Optional[str] = None, sector: Optional[str] = None) -> List[AttackTypeStat]:
         query = db.query(CyberIncident)
-        if country and country != "All":
-            query = query.filter((CyberIncident.country == country) | (CyberIncident.country_code == country))
+        query = AnalyticsService._apply_country_filter(query, country)
         if sector and sector != "All":
             query = query.filter(CyberIncident.sector == sector)
 
@@ -239,8 +257,7 @@ class AnalyticsService:
     @staticmethod
     def get_severity_distribution(db: Session, country: Optional[str] = None, sector: Optional[str] = None) -> List[SeverityStat]:
         query = db.query(CyberIncident)
-        if country and country != "All":
-            query = query.filter((CyberIncident.country == country) | (CyberIncident.country_code == country))
+        query = AnalyticsService._apply_country_filter(query, country)
         if sector and sector != "All":
             query = query.filter(CyberIncident.sector == sector)
 

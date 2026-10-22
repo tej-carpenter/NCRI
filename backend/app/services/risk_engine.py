@@ -76,8 +76,14 @@ class RiskEngine:
 
         # Base incident query
         query = db.query(CyberIncident)
-        if country != "All":
-            query = query.filter((CyberIncident.country == country) | (CyberIncident.country_code == country))
+        if country and country not in ("All", "Global", "Global Landscape", ""):
+            clean_c = country.strip()
+            if clean_c in ("United Kingdom", "UK", "GB"):
+                query = query.filter((CyberIncident.country.ilike("%United Kingdom%")) | (CyberIncident.country_code.in_(["GB", "UK"])))
+            elif clean_c in ("United States", "USA", "US"):
+                query = query.filter((CyberIncident.country.ilike("%United States%")) | (CyberIncident.country_code == "US"))
+            else:
+                query = query.filter((CyberIncident.country == clean_c) | (CyberIncident.country_code == clean_c) | (CyberIncident.country.ilike(f"%{clean_c}%")))
 
         # Filter by year if period looks like a year
         if period.isdigit():
