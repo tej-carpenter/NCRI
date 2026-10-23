@@ -3,9 +3,12 @@
 [![Python 3.11](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688.svg)](https://fastapi.tiangolo.com/)
 [![Next.js 14](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)
+[![Capacitor Mobile](https://img.shields.io/badge/Mobile-Capacitor%20%7C%20Android%20APK-1793d1.svg)](./mobile)
 [![License: Open Access](https://img.shields.io/badge/License-Academic%20Open%20Access-green.svg)](#licensing)
 
-The **National Cyber Incident Analytics Platform (NCRI)** is an end-to-end cybersecurity data engineering and analytics system. It ingests verified cyber incidents from credible public feeds (UMD CISSM, Ransomware.live, CERT-In India), correlates them with CISA Known Exploited Vulnerabilities (KEV), normalizes schemas, eliminates duplicates through SHA-256 fingerprinting, and calculates an explainable **National Cyber Risk Index (NCRI v1.0.0)**.
+The **National Cyber Incident Analytics Platform (NCRI)** is an end-to-end cybersecurity data engineering and analytics system, available as both a web dashboard and a **Hybrid Mobile Application (HMAD)** with pre-compiled Android APK. It ingests verified cyber incidents from credible public feeds (UMD CISSM, Ransomware.live, CERT-In India), correlates them with CISA Known Exploited Vulnerabilities (KEV), normalizes schemas, eliminates duplicates through SHA-256 fingerprinting, and calculates an explainable **National Cyber Risk Index (NCRI v1.0.0)**.
+
+> 📱 **Hybrid Mobile Application Available**: Download the installable Android APK directly at [`NCRI-Mobile-App.apk`](./NCRI-Mobile-App.apk) or view the mobile codebase in the [`mobile/`](./mobile) folder.
 
 ---
 
